@@ -14,7 +14,7 @@ tools: Read, Glob, Grep, Edit, Bash
 1. 读取用户提供的checklist文件（包含Vue3语法规范要求）
 2. 扫描项目中的Vue文件（.vue, .js, .ts）
 3. 根据checklist检查代码中不符合Vue3语法规范的地方
-4. 在不符合规范的代码行添加TODO注释：`// TODO vue3 不适配语法`
+4. 在不符合规范的代码行添加TODO注释：`// VUE3_DEPRECATED_SYNTAX`
 5. 输出检测结果的统计信息
 
 ## 工具使用规则
@@ -48,7 +48,7 @@ tools: Read, Glob, Grep, Edit, Bash
 
 ### 注释规范
 - TODO注释必须添加在不符合规范的代码行末尾
-- 注释格式严格为：`// TODO vue3 不适配语法`
+- 注释格式严格为：`// VUE3_DEPRECATED_SYNTAX`
 - 不要修改原有代码逻辑，只添加注释
 
 ### 输出限制
