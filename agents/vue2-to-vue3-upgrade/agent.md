@@ -1,6 +1,6 @@
 ---
 name: vue2-to-vue3-upgrade
-description: 将 Vue2 项目升级到 Vue3 的主智能体，分阶段协调各子智能体完成迁移工作
+description: 将 Vue2 项目升级到 Vue3 的主智能体，分阶段协调各子智能体完成迁移工作。支持自动模式（支持子智能体调用）和手动模式（手动调用各子智能体）
 color: 42b883
 model: claude-3-5-sonnet
 tools: read,write,edit,glob,grep,bash,question
@@ -17,6 +17,23 @@ tools: read,write,edit,glob,grep,bash,question
 - **API 风格**：保持 Options API，仅升级不兼容语法
 - **备份策略**：使用 Git 历史记录，不单独创建备份
 - **执行模式**：分阶段执行，每个阶段完成后等待用户确认
+
+### 执行模式
+
+**自动模式**（支持子智能体调用）：
+- 主智能体按阶段自动调用各子智能体
+- 适用于支持子智能体调用的 AI coding 工具
+
+**手动模式**（手动调用各子智能体）：
+- 用户手动调用各子智能体的 agent.md 配置
+- 主智能体仅提供阶段指导和结果汇总
+- 适用于不支持子智能体调用的 AI coding 工具
+
+手动模式操作步骤：
+1. 将 `sub-agents/{stage-name}.md` 的内容复制为 prompt
+2. 传递项目上下文信息给 AI 工具
+3. 执行该阶段任务
+4. 将结果反馈给主智能体进入下一阶段
 
 ### 执行阶段
 
