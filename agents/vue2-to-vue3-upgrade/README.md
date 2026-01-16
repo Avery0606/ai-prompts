@@ -26,20 +26,21 @@ agent: vue2-to-vue3-upgrade
 适用于不支持子智能体调用的 AI coding 工具：
 
 1. **准备阶段**
-   - 读取 `agent.md` 了解完整迁移流程
-   - 检查项目是否为 Git 仓库，提交所有未提交变更
+    - 读取 `agent.md` 了解完整迁移流程
+    - 检查项目是否为 Git 仓库，提交所有未提交变更
 
 2. **按阶段执行**
-   - 读取 `sub-agents/{stage-name}.md` 文件
-   - 将文件内容作为 prompt 传递给 AI 工具
-   - 附上项目上下文信息（如 package.json、项目结构）
-   - 执行该阶段任务
-   - 查看 AI 工具的输出和变更
+    - 读取 `sub-agents/{stage-name}.md` 文件
+    - 读取对应的 `skills/{skill-name}.md` 获取迁移规则
+    - 将两者内容作为 prompt 传递给 AI 工具
+    - 附上项目上下文信息（如 package.json、项目结构）
+    - 执行该阶段任务
+    - 查看 AI 工具的输出和变更
 
 3. **阶段确认**
-   - 每个阶段完成后，检查修改的文件
-   - 确认无误后进入下一阶段
-   - 如有问题可回滚到该阶段前
+    - 每个阶段完成后，检查修改的文件
+    - 确认无误后进入下一阶段
+    - 如有问题可回滚到该阶段前
 
    4. **阶段顺序**
     ```
@@ -58,6 +59,23 @@ agent: vue2-to-vue3-upgrade
 ## 子智能体说明
 
 每个子智能体均可独立运行，只需将对应的 `.md` 文件内容作为 prompt 传入 AI 工具，并提供必要的项目上下文。
+
+### Skills 迁移规则
+
+子智能体执行时会自动加载对应的 skill 文件，该文件包含该阶段的迁移规则和代码示例：
+
+| Skill | 描述 |
+|-------|------|
+| vue3-migration-breaking-changes.md | 破坏性变更列表 |
+| vue3-migration-global-api.md | 全局 API 迁移规则 |
+| vue3-migration-component.md | 组件语法迁移规则 |
+| vue3-migration-template.md | 模板语法迁移规则 |
+| vue3-migration-router.md | Vue Router 迁移规则 |
+| vue3-migration-vuex.md | Vuex 迁移规则 |
+| vue3-migration-style.md | 样式迁移规则 |
+| vue3-migration-compat.md | @vue/compat 使用指南 |
+
+Skill 采用渐进式披露模式，每个子智能体仅加载相关的 skill 文件，避免上下文污染。
 
 ### 进度跟踪
 - `progress-tracker.md` - 查看当前升级进展和结果摘要（可随时执行）
