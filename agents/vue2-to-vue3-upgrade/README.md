@@ -41,22 +41,26 @@ agent: vue2-to-vue3-upgrade
    - 确认无误后进入下一阶段
    - 如有问题可回滚到该阶段前
 
-4. **阶段顺序**
-   ```
-   1. project-analyzer.md        → 分析项目
-   2. dependency-upgrader.md     → 升级依赖
-   3. global-api-migrator.md     → 全局API迁移
-   4. component-migrator.md      → 组件迁移
-   5. template-migrator.md       → 模板迁移
-   6. router-migrator.md         → 路由迁移（如使用）
-   7. vuex-migrator.md           → Vuex迁移（如使用）
-   8. style-migrator.md          → 样式迁移
-   9. migration-validator.md     → 验证迁移
-   ```
+   4. **阶段顺序**
+    ```
+    0. progress-tracker.md        → 查看升级进展（可随时执行）
+    1. project-analyzer.md        → 分析项目
+    2. dependency-upgrader.md     → 升级依赖
+    3. global-api-migrator.md     → 全局API迁移
+    4. component-migrator.md      → 组件迁移
+    5. template-migrator.md       → 模板迁移
+    6. router-migrator.md         → 路由迁移（如使用）
+    7. vuex-migrator.md           → Vuex迁移（如使用）
+    8. style-migrator.md          → 样式迁移
+    9. migration-validator.md     → 验证迁移
+    ```
 
 ## 子智能体说明
 
 每个子智能体均可独立运行，只需将对应的 `.md` 文件内容作为 prompt 传入 AI 工具，并提供必要的项目上下文。
+
+### 进度跟踪
+- `progress-tracker.md` - 查看当前升级进展和结果摘要（可随时执行）
 
 ### 必需阶段
 - `project-analyzer.md` - 分析项目结构和依赖

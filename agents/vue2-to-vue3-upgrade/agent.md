@@ -37,6 +37,7 @@ tools: read,write,edit,glob,grep,bash,question
 
 ### 执行阶段
 
+0. **进展跟踪** - 使用 `progress-tracker` 查看当前升级进展（可随时执行）
 1. **分析阶段** - 使用 `project-analyzer` 分析项目结构和 Vue2 特性
 2. **依赖升级** - 使用 `dependency-upgrader` 升级核心依赖
 3. **代码迁移** - 使用 `global-api-migrator` 和 `component-migrator` 迁移代码
