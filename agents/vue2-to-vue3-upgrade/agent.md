@@ -40,8 +40,8 @@ tools: read,write,edit,glob,grep,bash,question
 ### 执行阶段
 
 **初始化阶段**：
-1. 调用 `project-analyzer` 分析项目
-2. 调用 `task-initializer` 创建任务队列
+1. 调用 `project-analyzer` 分析项目（返回项目类型、文件类型分布、依赖项等）
+2. 调用 `task-initializer` 创建任务队列（接收project-analyzer的分析结果作为输入）
 3. 调用 `progress-tracker` 查看初始状态
 
 **循环阶段**：
@@ -201,10 +201,24 @@ progress-tracker 的输出格式：
 
 ## 执行流程
 
+### 初始化阶段
 1. **初始化检查**: 检测Vue2项目，确认Git状态
-2. **调用子智能体**: 按阶段调用project-analyzer、task-initializer
-3. **循环处理**: 调用file-queue-manager获取文件，file-migrator执行迁移
-4. **验证总结**: 调用progress-tracker和migration-validator
+2. **调用project-analyzer**: 分析项目结构、文件类型、依赖项，返回项目分析报告
+3. **调用task-initializer**: 基于project-analyzer的分析结果，扫描项目文件，创建任务队列
+   - 接收项目分析报告作为输入（优化文件扫描策略）
+   - 创建 `.vue3-upgrade-tasks.json` 任务队列文件
+4. **调用progress-tracker**: 查看初始状态
+
+### 循环处理阶段
+5. **循环执行文件迁移**:
+   - 调用file-queue-manager获取下一个待处理文件
+   - 调用file-migrator执行迁移（内部依次调用各子迁移器）
+   - 调用file-queue-manager更新文件状态
+   - 重复上述步骤直到所有文件完成
+
+### 验证总结阶段
+6. **调用progress-tracker**: 查看最终进度
+7. **调用migration-validator**: 验证迁移结果，检查遗留问题
 
 ## 任务文件格式
 
