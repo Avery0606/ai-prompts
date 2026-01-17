@@ -6,6 +6,8 @@
 
 - 识别 Vue2 中的过时语法和API
 - 根据规则将 Vue2 代码转换为 Vue3 兼容代码
+- 采用文件级别的细粒度迁移策略，每个文件独立完成所有迁移阶段
+- 通过任务队列跟踪所有文件的升级进度，支持可中断、可恢复
 - 处理常见的升级场景和兼容性问题
 - 标记需要人工审查的代码变更
 
@@ -19,7 +21,7 @@
 agent: vue2-to-vue3-upgrade
 ```
 
-主智能体将自动按阶段调用各子智能体完成迁移。
+主智能体将自动执行：初始化 → 循环处理每个文件 → 验证。
 
 ### 手动模式
 
@@ -27,38 +29,53 @@ agent: vue2-to-vue3-upgrade
 
 1. **准备阶段**
     - 读取 `agent.md` 了解完整迁移流程
-    - 检查项目是否为 Git 仓库，提交所有未提交变更
+    - 检查项目是否为 Git 仓库，提交所有未提交变更（推荐）
 
-2. **按阶段执行**
-    - 读取 `sub-agents/{stage-name}.md` 文件
-    - 读取对应的 `skills/{skill-name}.md` 获取迁移规则
-    - 将两者内容作为 prompt 传递给 AI 工具
-    - 附上项目上下文信息（如 package.json、项目结构）
-    - 执行该阶段任务
-    - 查看 AI 工具的输出和变更
+2. **初始化阶段**
+    - 调用 `task-initializer` 创建任务队列（`.vue3-upgrade-tasks.json`）
+    - 调用 `project-analyzer` 分析项目结构
+    - 调用 `progress-tracker` 查看初始状态
 
-3. **阶段确认**
-    - 每个阶段完成后，检查修改的文件
-    - 确认无误后进入下一阶段
-    - 如有问题可回滚到该阶段前
+3. **循环阶段**
+    - 调用 `file-queue-manager` 获取下一个待处理文件
+    - 调用 `file-migrator [文件路径]` 升级该文件
+    - 调用 `progress-tracker` 查看当前进度
+    - 重复上述步骤直到所有文件完成
 
-   4. **阶段顺序**
-    ```
-    0. progress-tracker.md        → 查看升级进展（可随时执行）
-    1. project-analyzer.md        → 分析项目
-    2. dependency-upgrader.md     → 升级依赖
-    3. global-api-migrator.md     → 全局API迁移
-    4. component-migrator.md      → 组件迁移
-    5. template-migrator.md       → 模板迁移
-    6. router-migrator.md         → 路由迁移（如使用）
-    7. vuex-migrator.md           → Vuex迁移（如使用）
-    8. style-migrator.md          → 样式迁移
-    9. migration-validator.md     → 验证迁移
-    ```
+4. **验证阶段**
+    - 调用 `progress-tracker` 查看最终报告
+    - 调用 `migration-validator` 验证迁移结果
 
 ## 子智能体说明
 
 每个子智能体均可独立运行，只需将对应的 `.md` 文件内容作为 prompt 传入 AI 工具，并提供必要的项目上下文。
+
+### 初始化阶段子智能体
+
+- `project-analyzer.md` - 分析项目结构和 Vue2 特性
+- `task-initializer.md` - 扫描项目文件，创建任务队列
+
+### 循环阶段子智能体
+
+- `file-queue-manager.md` - 管理任务队列，获取下一个文件，更新状态
+- `file-migrator.md` - 对单个文件执行所有迁移阶段
+
+### 验证阶段子智能体
+
+- `progress-tracker.md` - 查看当前升级进展和结果摘要（可随时执行）
+- `migration-validator.md` - 验证所有文件的迁移结果
+
+### 文件迁移阶段
+
+在 `file-migrator` 内部依次执行以下阶段：
+
+- **dependency-migrator** - 迁移依赖导入语句（适用所有文件）
+- **global-api-migrator** - 迁移全局 API 调用（适用所有文件）
+- **component-migrator** - 迁移组件 Options API 语法（仅 .vue 文件）
+- **template-migrator** - 迁移模板语法（仅 .vue 文件）
+- **style-migrator** - 迁移样式相关代码（仅 .vue 文件）
+- **router-migrator** - 迁移 vue-router 相关代码（可选）
+- **vuex-migrator** - 迁移 Vuex 相关代码（可选）
 
 ### Skills 迁移规则
 
@@ -66,6 +83,7 @@ agent: vue2-to-vue3-upgrade
 
 | Skill | 描述 |
 |-------|------|
+| vue3-migration-dependency.md | 依赖导入迁移规则 |
 | vue3-migration-breaking-changes.md | 破坏性变更列表 |
 | vue3-migration-global-api.md | 全局 API 迁移规则 |
 | vue3-migration-component.md | 组件语法迁移规则 |
@@ -77,26 +95,74 @@ agent: vue2-to-vue3-upgrade
 
 Skill 采用渐进式披露模式，每个子智能体仅加载相关的 skill 文件，避免上下文污染。
 
-### 进度跟踪
-- `progress-tracker.md` - 查看当前升级进展和结果摘要（可随时执行）
+## 任务队列文件
 
-### 必需阶段
-- `project-analyzer.md` - 分析项目结构和依赖
-- `dependency-upgrader.md` - 升级核心依赖包
-- `global-api-migrator.md` - 迁移全局 API 调用
-- `component-migrator.md` - 迁移组件语法
-- `template-migrator.md` - 迁移模板语法
-- `style-migrator.md` - 迁移样式相关代码
-- `migration-validator.md` - 验证迁移结果
+智能体会在项目根目录创建 `.vue3-upgrade-tasks.json` 文件，记录所有文件的迁移状态。
 
-### 可选阶段
-- `router-migrator.md` - 仅项目使用 vue-router 时执行
-- `vuex-migrator.md` - 仅项目使用 vuex 时执行
+### 文件结构
+
+```json
+{
+  "project": "项目名称",
+  "created_at": "2025-01-17T00:00:00Z",
+  "updated_at": "2025-01-17T01:00:00Z",
+  "config": {
+    "include_patterns": ["**/*.vue", "**/*.js", "**/*.ts"],
+    "exclude_patterns": ["node_modules", "dist", ".git", ".vue3-upgrade-tasks.json"]
+  },
+  "files": [
+    {
+      "path": "src/components/Header.vue",
+      "status": "pending",
+      "phases": {}
+    },
+    {
+      "path": "src/App.vue",
+      "status": "completed",
+      "phases": {
+        "dependency": true,
+        "global-api": true,
+        "component": true,
+        "template": true,
+        "style": true,
+        "router": false,
+        "vuex": false
+      },
+      "completed_at": "2025-01-17T01:00:00Z",
+      "changes": {
+        "added_todos": 2,
+        "issues": {"high": 0, "medium": 1, "low": 3}
+      }
+    }
+  ],
+  "summary": {
+    "total": 150,
+    "completed": 1,
+    "pending": 148,
+    "failed": 1,
+    "progress": "0.7%"
+  }
+}
+```
+
+### 状态说明
+
+- **pending**: 待处理
+- **completed**: 已完成
+- **failed**: 失败（不重试，需要用户手动处理）
 
 ## 注意事项
 
-1. **独立运行**：每个子智能体设计为可独立运行，不依赖其他子智能体的输出
-2. **上下文传递**：手动调用时需提供当前项目上下文（package.json、相关配置文件等）
-3. **阶段隔离**：每个阶段聚焦特定任务，完成后等待确认再继续
-4. **可回滚**：基于 Git 历史记录，每个阶段均可独立回滚
-5. **渐进式**：优先使用 @vue/compat 迁移 build，逐步解决兼容性警告
+1. **文件级别迁移**：每个文件独立完成所有迁移阶段，可随时中断恢复
+2. **任务跟踪**：所有状态保存在 `.vue3-upgrade-tasks.json`，建议添加到 `.gitignore`
+3. **失败处理**：失败的文件不会自动重试，需要用户手动处理并标记状态
+4. **上下文传递**：手动调用时需提供当前项目上下文和文件路径
+5. **可回滚**：基于 Git 历史记录，每个文件的变更均可独立回滚
+6. **渐进式**：优先使用 @vue/compat 迁移 build，逐步解决兼容性警告
+
+## 中断恢复
+
+- 每完成一个文件后，任务文件立即更新
+- 用户可随时中断（Ctrl+C）
+- 下次启动时自动从最后一个 completed 文件的下一个继续
+- 用户可选择删除任务文件重新开始
