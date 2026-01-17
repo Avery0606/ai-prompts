@@ -1,0 +1,1 @@
+TODO: 迁移组件 Options API 语法，更新生命周期钩子、$listeners、$children、v-model 语法、functional 组件和自定义指令钩子

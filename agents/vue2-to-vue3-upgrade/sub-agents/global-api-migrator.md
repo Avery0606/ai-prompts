@@ -1,0 +1,1 @@
+TODO: 迁移全局 API 调用，Vue.xxx → app.xxx、Vue.component → app.component、Vue.directive → app.directive、Vue.filter 标记为重构

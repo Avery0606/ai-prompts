@@ -1,0 +1,1 @@
+TODO: 对单个文件执行所有迁移阶段，依次加载 dependency、global-api、component、template、style、router、vuex 等 skill 文件并执行迁移
